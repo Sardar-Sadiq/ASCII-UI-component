@@ -1,6 +1,7 @@
 import FireEffectFooter from "@/components/fire-effect";
 import MatrixRain from "@/components/matrix-rain";
 import AsciiLightning from "@/components/ascii-lightning";
+import WaterWaves from "@/components/water-waves";
 
 export interface ComponentMetadata {
     id: string;
@@ -674,6 +675,202 @@ const AsciiLightning = () => {
 export default AsciiLightning;
 `;
 
+const WATER_WAVES_CODE_TSX = `"use client";
+
+import React, { useEffect, useRef, useState } from "react";
+
+const WaterWaves = () => {
+    const [frame, setFrame] = useState("");
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [cols, setCols] = useState(120);
+    const rows = 40;
+
+    // Animation state refs
+    const timeRef = useRef(0);
+
+    // Responsive width handler
+    useEffect(() => {
+        const handleResize = () => {
+            if (containerRef.current) {
+                const w = containerRef.current.offsetWidth;
+                setCols(Math.max(80, Math.floor(w / 6)));
+            }
+        };
+
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    useEffect(() => {
+        let animationFrameId: number;
+
+        const render = () => {
+            timeRef.current += 0.016;
+            const t = timeRef.current;
+
+            let output = "";
+            
+            for (let y = 0; y < rows; y++) {
+                for (let x = 0; x < cols; x++) {
+                    const nx = x / cols;
+                    const ny = y / rows;
+
+                    const wave1 = Math.sin(ny * Math.PI * 3 - t * 0.4) * 0.2;
+                    const wave2 = Math.sin(ny * Math.PI * 4 - t * 0.5 + nx * Math.PI) * 0.15;
+                    const wave3 = Math.sin(nx * Math.PI * 6 + ny * Math.PI * 2 - t * 0.3) * 0.1;
+                    
+                    const shoreProximity = Math.max(0, ny - 0.6);
+                    const foam = Math.sin(nx * Math.PI * 10 - t * 1.2) * shoreProximity * 0.15;
+                    const breakingWave = Math.sin(ny * Math.PI * 5 - t * 0.6 + nx * 0.5) * 0.08;
+
+                    let waveHeight = wave1 + wave2 + wave3 + foam + breakingWave;
+                    const shoreIntensity = ny * 0.3;
+                    waveHeight += shoreIntensity;
+                    
+                    const washCycle = Math.sin(t * 0.25) * 0.5 + 0.5;
+                    const washEffect = ny * washCycle * 0.2;
+                    waveHeight += washEffect;
+                    
+                    if (waveHeight > 0.5) output += "≈";
+                    else if (waveHeight > 0.35) output += "~";
+                    else if (waveHeight > 0.2) output += "∼";
+                    else if (waveHeight > 0.1) output += "-";
+                    else if (waveHeight > 0.0) output += "·";
+                    else output += " ";
+                }
+                output += "\\n";
+            }
+            
+            setFrame(output);
+            animationFrameId = requestAnimationFrame(render);
+        };
+
+        render();
+
+        return () => {
+            cancelAnimationFrame(animationFrameId);
+        };
+    }, [cols]);
+
+    return (
+        <div 
+            ref={containerRef}
+            className="w-full h-full overflow-hidden bg-transparent flex items-center justify-center select-none pointer-events-none absolute inset-0 mix-blend-screen"
+            aria-hidden="true"
+        >
+            <pre 
+                className="font-mono text-[8px] md:text-[10px] leading-[8px] md:leading-[10px] text-cyan-500/30 whitespace-pre"
+                style={{
+                    textShadow: "0 0 15px rgba(6, 182, 212, 0.4)"
+                }}
+            >
+                {frame}
+            </pre>
+        </div>
+    );
+};
+
+export default WaterWaves;
+`;
+
+const WATER_WAVES_CODE_JSX = `"use client";
+
+import React, { useEffect, useRef, useState } from "react";
+
+const WaterWaves = () => {
+    const [frame, setFrame] = useState("");
+    const containerRef = useRef(null);
+    const [cols, setCols] = useState(120);
+    const rows = 40;
+
+    const timeRef = useRef(0);
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (containerRef.current) {
+                const w = containerRef.current.offsetWidth;
+                setCols(Math.max(80, Math.floor(w / 6)));
+            }
+        };
+
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    useEffect(() => {
+        let animationFrameId;
+
+        const render = () => {
+            timeRef.current += 0.016;
+            const t = timeRef.current;
+
+            let output = "";
+            
+            for (let y = 0; y < rows; y++) {
+                for (let x = 0; x < cols; x++) {
+                    const nx = x / cols;
+                    const ny = y / rows;
+
+                    const wave1 = Math.sin(ny * Math.PI * 3 - t * 0.4) * 0.2;
+                    const wave2 = Math.sin(ny * Math.PI * 4 - t * 0.5 + nx * Math.PI) * 0.15;
+                    const wave3 = Math.sin(nx * Math.PI * 6 + ny * Math.PI * 2 - t * 0.3) * 0.1;
+                    
+                    const shoreProximity = Math.max(0, ny - 0.6);
+                    const foam = Math.sin(nx * Math.PI * 10 - t * 1.2) * shoreProximity * 0.15;
+                    const breakingWave = Math.sin(ny * Math.PI * 5 - t * 0.6 + nx * 0.5) * 0.08;
+
+                    let waveHeight = wave1 + wave2 + wave3 + foam + breakingWave;
+                    const shoreIntensity = ny * 0.3;
+                    waveHeight += shoreIntensity;
+                    
+                    const washCycle = Math.sin(t * 0.25) * 0.5 + 0.5;
+                    const washEffect = ny * washCycle * 0.2;
+                    waveHeight += washEffect;
+                    
+                    if (waveHeight > 0.5) output += "≈";
+                    else if (waveHeight > 0.35) output += "~";
+                    else if (waveHeight > 0.2) output += "∼";
+                    else if (waveHeight > 0.1) output += "-";
+                    else if (waveHeight > 0.0) output += "·";
+                    else output += " ";
+                }
+                output += "\\n";
+            }
+            
+            setFrame(output);
+            animationFrameId = requestAnimationFrame(render);
+        };
+
+        render();
+
+        return () => {
+            cancelAnimationFrame(animationFrameId);
+        };
+    }, [cols]);
+
+    return (
+        <div 
+            ref={containerRef}
+            className="w-full h-full overflow-hidden bg-transparent flex items-center justify-center select-none pointer-events-none absolute inset-0 mix-blend-screen"
+            aria-hidden="true"
+        >
+            <pre 
+                className="font-mono text-[8px] md:text-[10px] leading-[8px] md:leading-[10px] text-cyan-500/30 whitespace-pre"
+                style={{
+                    textShadow: "0 0 15px rgba(6, 182, 212, 0.4)"
+                }}
+            >
+                {frame}
+            </pre>
+        </div>
+    );
+};
+
+export default WaterWaves;
+`;
+
 export const COMPONENTS: ComponentMetadata[] = [
     {
         id: "fire-effect",
@@ -701,5 +898,14 @@ export const COMPONENTS: ComponentMetadata[] = [
         component: AsciiLightning,
         code: ASCII_LIGHTNING_CODE_TSX,
         codeJsx: ASCII_LIGHTNING_CODE_JSX
+    },
+    {
+        id: "water-waves",
+        name: "Water Waves",
+        version: "1.0.0",
+        description: "Ocean waves reaching shore with realistic wash cycles and foam effects.",
+        component: WaterWaves,
+        code: WATER_WAVES_CODE_TSX,
+        codeJsx: WATER_WAVES_CODE_JSX
     },
 ];
