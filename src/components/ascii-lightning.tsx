@@ -11,8 +11,8 @@ const AsciiLightning = () => {
     const cols = 80;
     const rows = 40;
 
-    // Character set for electricity (high energy feel)
-    const chars = "⚡↯~*+!=^";
+    // Character set for electricity (Safe ASCII to prevent layout jitter)
+    const chars = "s";
 
     useEffect(() => {
         const canvas = canvasRef.current;

@@ -77,7 +77,7 @@ const FireEffectFooter = () => {
         <div
             className="fire-effect-container w-full flex justify-center items-end"
             style={{
-                height: "300px", //adjuste height as per you need
+                height: "300px", //adjust height as per you need
                 position: "relative",
                 overflow: "hidden"
             }}
@@ -184,7 +184,7 @@ const FireEffectFooter = () => {
         <div
             className="fire-effect-container w-full flex justify-center items-end"
             style={{
-                height: "300px", //adjuste height as per you need
+                height: "300px", //adjust height as per you need
                 position: "relative",
                 overflow: "hidden"
             }}
@@ -226,7 +226,7 @@ const FireEffectFooter = () => {
 export default FireEffectFooter;
 `;
 
-const MATRIX_RAIN_CODE_TSX = \`"use client";
+const MATRIX_RAIN_CODE_TSX = `"use client";
 
 import React, { useEffect, useState, useRef } from "react";
 
@@ -348,9 +348,9 @@ const MatrixRain = () => {
 };
 
 export default MatrixRain;
-\`;
+`;
 
-const MATRIX_RAIN_CODE_JSX = \`"use client";
+const MATRIX_RAIN_CODE_JSX = `"use client";
 
 import React, { useEffect, useState, useRef } from "react";
 
@@ -430,9 +430,9 @@ const MatrixRain = () => {
 };
 
 export default MatrixRain;
-\`;
+`;
 
-const ASCII_LIGHTNING_CODE_TSX = \`"use client";
+const ASCII_LIGHTNING_CODE_TSX = `"use client";
 
 import React, { useEffect, useRef, useState } from "react";
 
@@ -445,8 +445,8 @@ const AsciiLightning = () => {
     const cols = 80;
     const rows = 40;
     
-    // Character set for electricity (high energy feel)
-    const chars = "⚡↯~*+!=^";
+    // Character set for electricity (Safe ASCII to prevent layout jitter)
+    const chars = "s";
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -551,9 +551,9 @@ const AsciiLightning = () => {
 };
 
 export default AsciiLightning;
-\`;
+`;
 
-const ASCII_LIGHTNING_CODE_JSX = \`"use client";
+const ASCII_LIGHTNING_CODE_JSX = `"use client";
 
 import React, { useEffect, useRef, useState } from "react";
 
@@ -566,8 +566,8 @@ const AsciiLightning = () => {
     const cols = 80;
     const rows = 40;
     
-    // Character set for electricity (high energy feel)
-    const chars = "⚡↯~*+!=^";
+    // Character set for electricity (Safe ASCII to prevent layout jitter)
+    const chars = "s";
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -672,34 +672,34 @@ const AsciiLightning = () => {
 };
 
 export default AsciiLightning;
-\`;
+`;
 
 export const COMPONENTS: ComponentMetadata[] = [
-  {
-    id: "fire-effect",
-    name: "Fire Effect",
-    version: "1.0.0",
-    description: "A procedural buffer-based ASCII fire simulation.",
-    component: FireEffectFooter,
-    code: FIRE_EFFECT_CODE_TSX,
-    codeJsx: FIRE_EFFECT_CODE_JSX
-  },
-  {
-    id: "matrix-02",
-    name: "Matrix Data Stream",
-    version: "1.0.0",
-    description: "A vertical digital rain effect inspired by the classic terminal stream.",
-    component: MatrixRain,
-    code: MATRIX_RAIN_CODE_TSX,
-    codeJsx: MATRIX_RAIN_CODE_JSX
-  },
-  {
-    id: "ascii-lightning",
-    name: "Electric Bolt",
-    version: "1.0.0",
-    description: "Shape-bounded particle system forming a flickering lighting bolt.",
-    component: AsciiLightning,
-    code: ASCII_LIGHTNING_CODE_TSX,
-    codeJsx: ASCII_LIGHTNING_CODE_JSX
-  },
+    {
+        id: "fire-effect",
+        name: "Fire Effect",
+        version: "1.0.0",
+        description: "A procedural buffer-based ASCII fire simulation.",
+        component: FireEffectFooter,
+        code: FIRE_EFFECT_CODE_TSX,
+        codeJsx: FIRE_EFFECT_CODE_JSX
+    },
+    {
+        id: "matrix-02",
+        name: "Matrix Data Stream",
+        version: "1.0.0",
+        description: "A vertical digital rain effect inspired by the classic terminal stream.",
+        component: MatrixRain,
+        code: MATRIX_RAIN_CODE_TSX,
+        codeJsx: MATRIX_RAIN_CODE_JSX
+    },
+    {
+        id: "ascii-lightning",
+        name: "Electric Bolt",
+        version: "1.0.0",
+        description: "Shape-bounded particle system forming a flickering lighting bolt.",
+        component: AsciiLightning,
+        code: ASCII_LIGHTNING_CODE_TSX,
+        codeJsx: ASCII_LIGHTNING_CODE_JSX
+    },
 ];
