@@ -75,7 +75,7 @@ const FireEffectFooter = () => {
         <div
             className="fire-effect-container w-full flex justify-center items-end"
             style={{
-                height: "100px",
+                height: "300px", //adjuste height as per you need
                 position: "relative",
                 overflow: "hidden"
             }}

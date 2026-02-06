@@ -12,6 +12,14 @@ export default function Home() {
   const activeComponent = COMPONENTS.find((c) => c.id === activeComponentId) || COMPONENTS[0];
   const [activeTab, setActiveTab] = useState("preview");
   const [codeType, setCodeType] = useState<"tsx" | "jsx">("tsx");
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    const codeToCopy = codeType === "tsx" ? activeComponent.code : (activeComponent.codeJsx || activeComponent.code);
+    navigator.clipboard.writeText(codeToCopy);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <>
@@ -91,35 +99,47 @@ export default function Home() {
                 </Tabs.Trigger>
               </Tabs.List>
 
-              <div className="flex items-center gap-3">
-                <div className="flex bg-neutral-900/50 p-0.5 rounded-md border border-neutral-800">
+              {activeTab === "code" && (
+                <div className="flex items-center gap-3">
+                  <div className="flex bg-neutral-900/50 p-0.5 rounded-md border border-neutral-800">
+                    <button
+                      onClick={() => setCodeType("tsx")}
+                      className={cn(
+                        "px-2 py-0.5 rounded text-[10px] font-mono transition-colors",
+                        codeType === "tsx" ? "bg-neutral-800 text-white" : "text-neutral-500 hover:text-white"
+                      )}
+                    >
+                      TSX
+                    </button>
+                    <button
+                      onClick={() => setCodeType("jsx")}
+                      className={cn(
+                        "px-2 py-0.5 rounded text-[10px] font-mono transition-colors",
+                        codeType === "jsx" ? "bg-neutral-800 text-white" : "text-neutral-500 hover:text-white"
+                      )}
+                    >
+                      JSX
+                    </button>
+                  </div>
                   <button
-                    onClick={() => setCodeType("tsx")}
+                    onClick={handleCopy}
                     className={cn(
-                      "px-2 py-0.5 rounded text-[10px] font-mono transition-colors",
-                      codeType === "tsx" ? "bg-neutral-800 text-white" : "text-neutral-500 hover:text-white"
+                      "flex items-center gap-2 text-xs transition-all duration-300 px-2 py-1 rounded-md",
+                      copied
+                        ? "bg-white text-black font-medium scale-105"
+                        : "text-neutral-500 hover:text-white"
                     )}
                   >
-                    TSX
-                  </button>
-                  <button
-                    onClick={() => setCodeType("jsx")}
-                    className={cn(
-                      "px-2 py-0.5 rounded text-[10px] font-mono transition-colors",
-                      codeType === "jsx" ? "bg-neutral-800 text-white" : "text-neutral-500 hover:text-white"
+                    {copied ? (
+                      "Copied!"
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" /> Copy
+                      </>
                     )}
-                  >
-                    JSX
                   </button>
                 </div>
-                <button
-                  onClick={() => navigator.clipboard.writeText(codeType === "tsx" ? activeComponent.code : (activeComponent.codeJsx || activeComponent.code))}
-                  className="flex items-center gap-2 text-xs text-neutral-500 hover:text-white transition-colors"
-                >
-                  <Copy className="w-3.5 h-3.5" /> Copy
-                </button>
-              </div>
-                )}
+              )}
             </div>
 
             <div className="flex-1 relative overflow-hidden bg-neutral-900/20 border border-neutral-900 rounded-xl">
