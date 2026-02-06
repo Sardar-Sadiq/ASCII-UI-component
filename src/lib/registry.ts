@@ -2,7 +2,7 @@ import FireEffectFooter from "@/components/fire-effect";
 import MatrixRain from "@/components/matrix-rain";
 import AsciiLightning from "@/components/ascii-lightning";
 import WaterWaves from "@/components/water-waves";
-import AsciiBatman from "@/components/ascii-batman";
+
 
 export interface ComponentMetadata {
     id: string;
@@ -1096,15 +1096,7 @@ export const COMPONENTS: ComponentMetadata[] = [
         code: ASCII_LIGHTNING_CODE_TSX,
         codeJsx: ASCII_LIGHTNING_CODE_JSX
     },
-    {
-        id: "ascii-batman",
-        name: "Batman Logo",
-        version: "1.0.0",
-        description: "Flickering ASCII Batman logo using shape-bounded particle animation.",
-        component: AsciiBatman,
-        code: ASCII_BATMAN_CODE_TSX,
-        codeJsx: ASCII_BATMAN_CODE_JSX
-    },
+
     {
         id: "water-waves",
         name: "Water Waves",
