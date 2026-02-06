@@ -2,17 +2,17 @@
 
 import React, { useEffect, useRef, useState } from "react";
 
-const AsciiLightning = () => {
+const AsciiBatman = () => {
     const [frame, setFrame] = useState("");
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [mask, setMask] = useState<boolean[][]>([]);
 
     // Grid settings
-    const cols = 80;
-    const rows = 40;
+    const cols = 140;
+    const rows = 50;
 
-    // Character set for electricity (Safe ASCII to prevent layout jitter)
-    const chars = "s";
+    // Character set for Batman logo
+    const chars = "·-/\\|+";
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -21,7 +21,7 @@ const AsciiLightning = () => {
         const ctx = canvas.getContext("2d", { willReadFrequently: true });
         if (!ctx) return;
 
-        // Set canvas size to match grid (1 pixel = 1 cell for sampling)
+        // Set canvas size to match grid
         canvas.width = cols;
         canvas.height = rows;
 
@@ -29,16 +29,12 @@ const AsciiLightning = () => {
         ctx.fillRect(0, 0, cols, rows);
 
         ctx.fillStyle = "white";
-        // Draw Lightning Bolt Path
-        // A simple stylized bolt path scaled to the grid
-        const path = new Path2D("M45 2 L25 22 H38 L30 38 L55 16 H42 L48 2 Z");
+
+        // Classic Batman logo path (Dark Knight style)
+        const path = new Path2D("M70 5 L65 8 L60 10 L50 12 L40 13 L30 14 L20 15 L10 17 L5 20 L2 25 L0 30 L2 35 L5 38 L10 40 L20 42 L30 43 L35 44 L38 46 L40 48 L42 47 L45 45 L50 42 L55 40 L60 38 L62 36 L64 33 L66 30 L68 25 L69 20 L69.5 15 L69.8 12 L70 10 L70.2 12 L70.5 15 L71 20 L72 25 L74 30 L76 33 L78 36 L80 38 L85 40 L90 42 L95 45 L98 47 L100 48 L102 46 L105 44 L110 43 L120 42 L130 40 L135 38 L138 35 L140 30 L138 25 L135 20 L130 17 L120 15 L110 14 L100 13 L90 12 L80 10 L75 8 Z M68 12 L66 15 L65 18 L64 22 L64 26 L65 28 L67 29 L69 28 L70 26 L70 22 L70 18 L70 15 Z M72 15 L72 18 L72 22 L72 26 L73 28 L75 29 L77 28 L78 26 L78 22 L77 18 L76 15 Z");
 
         ctx.save();
-        // Scale path to fit roughly in the center/fill height
-        // The path coordinates above are roughly 20-55 width and 2-38 height.
-        // Grid is 80x40. It fits reasonably well centered.
-        // Let's center it a bit better.
-        ctx.translate(10, 0);
+        ctx.translate(0, 0);
         ctx.fill(path);
         ctx.restore();
 
@@ -49,9 +45,7 @@ const AsciiLightning = () => {
         for (let y = 0; y < rows; y++) {
             const row: boolean[] = [];
             for (let x = 0; x < cols; x++) {
-                // Pixel index: (y * width + x) * 4 (RGBA)
                 const index = (y * cols + x) * 4;
-                // If red channel > 128, consider it active
                 row.push(imageData[index] > 128);
             }
             newMask.push(row);
@@ -69,16 +63,13 @@ const AsciiLightning = () => {
             for (let y = 0; y < rows; y++) {
                 for (let x = 0; x < cols; x++) {
                     if (mask[y][x]) {
-                        // "Flicker" Logic: Random chance to show char. 
-                        // High energy center? We can just use random noise for electricity.
-                        // 70% chance to render a character
-                        if (Math.random() > 0.5) {
+                        // Flicker effect: 70% chance to show character
+                        if (Math.random() > 0.3) {
                             buffer += chars[Math.floor(Math.random() * chars.length)];
                         } else {
                             buffer += " "; // Flicker gap
                         }
                     } else {
-                        // Background
                         buffer += " ";
                     }
                 }
@@ -91,20 +82,15 @@ const AsciiLightning = () => {
         return () => clearInterval(interval);
     }, [mask]);
 
-    // Color logic: Electric Yellow/White
     return (
         <div className="w-full h-full flex justify-center items-center overflow-hidden bg-black relative">
-            <canvas ref={canvasRef} className="hidden" /> {/* Hidden sampling canvas */}
+            <canvas ref={canvasRef} className="hidden" />
 
-            {/* 
-                Glow effect behind the text for extra juice.
-                We can emulate the bolt shape glow with a simple filtered div or just text-shadow.
-            */}
             <pre
-                className="font-mono leading-none select-none pointer-events-none whitespace-pre text-yellow-400 font-bold"
+                className="font-mono leading-none select-none pointer-events-none whitespace-pre text-white font-bold"
                 style={{
-                    fontSize: '12px',
-                    textShadow: '0 0 10px rgba(255, 230, 0, 0.6), 0 0 20px rgba(255, 230, 0, 0.4)'
+                    fontSize: '9px',
+                    textShadow: '0 0 10px rgba(255, 255, 255, 0.5), 0 0 20px rgba(255, 255, 255, 0.3)'
                 }}
             >
                 {frame}
@@ -112,11 +98,11 @@ const AsciiLightning = () => {
 
             <style jsx>{`
                 @media (max-width: 768px) {
-                    pre { font-size: 8px !important; }
+                    pre { font-size: 6px !important; }
                 }
             `}</style>
         </div>
     );
 };
 
-export default AsciiLightning;
+export default AsciiBatman;

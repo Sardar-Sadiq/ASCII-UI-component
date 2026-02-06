@@ -2,6 +2,7 @@ import FireEffectFooter from "@/components/fire-effect";
 import MatrixRain from "@/components/matrix-rain";
 import AsciiLightning from "@/components/ascii-lightning";
 import WaterWaves from "@/components/water-waves";
+import AsciiBatman from "@/components/ascii-batman";
 
 export interface ComponentMetadata {
     id: string;
@@ -675,6 +676,202 @@ const AsciiLightning = () => {
 export default AsciiLightning;
 `;
 
+const ASCII_BATMAN_CODE_TSX = `"use client";
+
+import React, { useEffect, useRef, useState } from "react";
+
+const AsciiBatman = () => {
+    const [frame, setFrame] = useState("");
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [mask, setMask] = useState<boolean[][]>([]);
+
+    const cols = 120;
+    const rows = 45;
+    const chars = "·-/\\\\|+";
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
+        if (!ctx) return;
+
+        canvas.width = cols;
+        canvas.height = rows;
+
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, cols, rows);
+        ctx.fillStyle = "white";
+        
+        const path = new Path2D("M40 2.12513H0C25.75 11.5625 16.85 25.0625 17.35 25.0125C48.1564 21.9318 58.6667 35.1125 59.85 42.4125C67.15 18.9625 102.35 25.0125 102.35 25.0125C102.35 25.0125 95.3 10.4125 119.8 0.625127C107.65 -0.0375209 79.85 0.0125125 79.85 0.125125C78.8 5.51251 75.983 8.01251 74.65 8.51251C72.45 9.17918 67.67 10.4625 66.15 10.2625C64.25 10.0125 64.1 9.41251 64.1 8.71251C64.1 8.15251 63.433 3.94585 63.1 1.91251C62.9 2.81251 62.218 6.17939 62.1 6.11251C60.26 5.07251 58.167 5.67918 57.35 6.11251L56.4 1.81251C56.133 3.42918 55.56 7.07251 55.4 8.71251C55.24 10.3525 53.233 10.4625 52.25 10.3125C42.05 8.79251 41.65 6.46251 40.1 2.12513Z");
+
+        ctx.save();
+        ctx.translate(0, 0);
+        ctx.fill(path);
+        ctx.restore();
+
+        const newMask: boolean[][] = [];
+        const imageData = ctx.getImageData(0, 0, cols, rows).data;
+
+        for (let y = 0; y < rows; y++) {
+            const row: boolean[] = [];
+            for (let x = 0; x < cols; x++) {
+                const index = (y * cols + x) * 4;
+                row.push(imageData[index] > 128);
+            }
+            newMask.push(row);
+        }
+        setMask(newMask);
+    }, []);
+
+    useEffect(() => {
+        if (mask.length === 0) return;
+
+        const animate = () => {
+            let buffer = "";
+            for (let y = 0; y < rows; y++) {
+                for (let x = 0; x < cols; x++) {
+                    if (mask[y][x]) {
+                        if (Math.random() > 0.3) {
+                            buffer += chars[Math.floor(Math.random() * chars.length)];
+                        } else {
+                            buffer += " ";
+                        }
+                    } else {
+                        buffer += " ";
+                    }
+                }
+                buffer += "\\n";
+            }
+            setFrame(buffer);
+        };
+
+        const interval = setInterval(animate, 60);
+        return () => clearInterval(interval);
+    }, [mask]);
+
+    return (
+        <div className="w-full h-full flex justify-center items-center overflow-hidden bg-black relative">
+            <canvas ref={canvasRef} className="hidden" />
+            <pre
+                className="font-mono leading-none select-none pointer-events-none whitespace-pre text-cyan-400 font-bold"
+                style={{
+                    fontSize: '10px',
+                    textShadow: '0 0 10px rgba(6, 182, 212, 0.6), 0 0 20px rgba(6, 182, 212, 0.4)'
+                }}
+            >
+                {frame}
+            </pre>
+            <style jsx>{\`
+                @media (max-width: 768px) {
+                    pre { font-size: 7px !important; }
+                }
+            \`}</style>
+        </div>
+    );
+};
+
+export default AsciiBatman;
+`;
+
+const ASCII_BATMAN_CODE_JSX = `"use client";
+
+import React, { useEffect, useRef, useState } from "react";
+
+const AsciiBatman = () => {
+    const [frame, setFrame] = useState("");
+    const canvasRef = useRef(null);
+    const [mask, setMask] = useState([]);
+
+    const cols = 120;
+    const rows = 45;
+    const chars = "·-/\\\\|+";
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
+        if (!ctx) return;
+
+        canvas.width = cols;
+        canvas.height = rows;
+
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, cols, rows);
+        ctx.fillStyle = "white";
+        
+        const path = new Path2D("M40 2.12513H0C25.75 11.5625 16.85 25.0625 17.35 25.0125C48.1564 21.9318 58.6667 35.1125 59.85 42.4125C67.15 18.9625 102.35 25.0125 102.35 25.0125C102.35 25.0125 95.3 10.4125 119.8 0.625127C107.65 -0.0375209 79.85 0.0125125 79.85 0.125125C78.8 5.51251 75.983 8.01251 74.65 8.51251C72.45 9.17918 67.67 10.4625 66.15 10.2625C64.25 10.0125 64.1 9.41251 64.1 8.71251C64.1 8.15251 63.433 3.94585 63.1 1.91251C62.9 2.81251 62.218 6.17939 62.1 6.11251C60.26 5.07251 58.167 5.67918 57.35 6.11251L56.4 1.81251C56.133 3.42918 55.56 7.07251 55.4 8.71251C55.24 10.3525 53.233 10.4625 52.25 10.3125C42.05 8.79251 41.65 6.46251 40.1 2.12513Z");
+
+        ctx.save();
+        ctx.translate(0, 0);
+        ctx.fill(path);
+        ctx.restore();
+
+        const newMask = [];
+        const imageData = ctx.getImageData(0, 0, cols, rows).data;
+
+        for (let y = 0; y < rows; y++) {
+            const row = [];
+            for (let x = 0; x < cols; x++) {
+                const index = (y * cols + x) * 4;
+                row.push(imageData[index] > 128);
+            }
+            newMask.push(row);
+        }
+        setMask(newMask);
+    }, []);
+
+    useEffect(() => {
+        if (mask.length === 0) return;
+
+        const animate = () => {
+            let buffer = "";
+            for (let y = 0; y < rows; y++) {
+                for (let x = 0; x < cols; x++) {
+                    if (mask[y][x]) {
+                        if (Math.random() > 0.3) {
+                            buffer += chars[Math.floor(Math.random() * chars.length)];
+                        } else {
+                            buffer += " ";
+                        }
+                    } else {
+                        buffer += " ";
+                    }
+                }
+                buffer += "\\n";
+            }
+            setFrame(buffer);
+        };
+
+        const interval = setInterval(animate, 60);
+        return () => clearInterval(interval);
+    }, [mask]);
+
+    return (
+        <div className="w-full h-full flex justify-center items-center overflow-hidden bg-black relative">
+            <canvas ref={canvasRef} className="hidden" />
+            <pre
+                className="font-mono leading-none select-none pointer-events-none whitespace-pre text-cyan-400 font-bold"
+                style={{
+                    fontSize: '10px',
+                    textShadow: '0 0 10px rgba(6, 182, 212, 0.6), 0 0 20px rgba(6, 182, 212, 0.4)'
+                }}
+            >
+                {frame}
+            </pre>
+            <style jsx>{\`
+                @media (max-width: 768px) {
+                    pre { font-size: 7px !important; }
+                }
+            \`}</style>
+        </div>
+    );
+};
+
+export default AsciiBatman;
+`;
+
 const WATER_WAVES_CODE_TSX = `"use client";
 
 import React, { useEffect, useRef, useState } from "react";
@@ -898,6 +1095,15 @@ export const COMPONENTS: ComponentMetadata[] = [
         component: AsciiLightning,
         code: ASCII_LIGHTNING_CODE_TSX,
         codeJsx: ASCII_LIGHTNING_CODE_JSX
+    },
+    {
+        id: "ascii-batman",
+        name: "Batman Logo",
+        version: "1.0.0",
+        description: "Flickering ASCII Batman logo using shape-bounded particle animation.",
+        component: AsciiBatman,
+        code: ASCII_BATMAN_CODE_TSX,
+        codeJsx: ASCII_BATMAN_CODE_JSX
     },
     {
         id: "water-waves",
