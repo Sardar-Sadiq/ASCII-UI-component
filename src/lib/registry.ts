@@ -1106,4 +1106,5 @@ export const COMPONENTS: ComponentMetadata[] = [
         code: WATER_WAVES_CODE_TSX,
         codeJsx: WATER_WAVES_CODE_JSX
     },
+
 ];
