@@ -38,16 +38,13 @@ const WaterWaves = () => {
             for (let y = 0; y < rows; y++) {
                 for (let x = 0; x < cols; x++) {
                     const nx = x / cols; // 0 to 1 (left to right)
-                    const ny = y / rows; // 0 to 1 (top to bottom)
+                    const ny = 1 - (y / rows); // 1 to 0 (FLIPPED: bottom to top)
 
                     // Create a wave cycle that rises and falls
-                    // Wave height oscillates between 0 and 1
                     const waveCycle = Math.sin(t * 0.3) * 0.5 + 0.5; // 0 to 1
 
                     // Maximum water level (rises from bottom)
-                    // When waveCycle = 0, water at bottom (ny = 1)
-                    // When waveCycle = 1, water reaches higher (ny = 0.3)
-                    const maxWaterLevel = 1 - (waveCycle * 0.7); // 1.0 to 0.3
+                    const maxWaterLevel = waveCycle * 0.7; // 0.0 to 0.7
 
                     // Add horizontal wave variation (not perfectly flat)
                     const horizontalWave1 = Math.sin(nx * Math.PI * 4 + t * 0.5) * 0.05;
@@ -64,19 +61,49 @@ const WaterWaves = () => {
                     const foamNoise = Math.sin(nx * Math.PI * 15 + t * 2) * 0.5 + 0.5;
                     const isFoamZone = distToSurface > -0.02 && distToSurface < 0.03;
 
+                    // Add water detail - bubbles and turbulence within water
+                    const bubbleNoise1 = Math.sin(nx * Math.PI * 8 + ny * Math.PI * 6 - t * 0.8) * 0.5 + 0.5;
+                    const bubbleNoise2 = Math.sin(nx * Math.PI * 12 - ny * Math.PI * 4 + t * 1.1) * 0.5 + 0.5;
+                    const turbulence = Math.sin(nx * Math.PI * 20 + ny * Math.PI * 15 - t * 1.5) * 0.5 + 0.5;
+
                     // Determine character based on position relative to water
-                    if (distToSurface < -0.15) {
-                        // Deep water
-                        output += "~";
-                    } else if (distToSurface < -0.08) {
-                        // Mid water
-                        output += "∼";
-                    } else if (distToSurface < -0.03) {
-                        // Shallow water
-                        output += "-";
-                    } else if (distToSurface < 0.0) {
-                        // Very shallow / surface
-                        output += "·";
+                    if (distToSurface < 0.0) {
+                        // Under water - add detail based on depth and turbulence
+                        const depth = -distToSurface; // How deep below surface
+
+                        if (depth > 0.3) {
+                            // Deep water with occasional bubbles
+                            if (bubbleNoise1 > 0.85 && bubbleNoise2 > 0.8) {
+                                output += "o"; // Bubble
+                            } else if (turbulence > 0.75) {
+                                output += "∼";
+                            } else {
+                                output += "~";
+                            }
+                        } else if (depth > 0.15) {
+                            // Mid-depth water with more activity
+                            if (bubbleNoise1 > 0.8) {
+                                output += "°"; // Small bubble
+                            } else if (turbulence > 0.7) {
+                                output += "∼";
+                            } else {
+                                output += "~";
+                            }
+                        } else if (depth > 0.05) {
+                            // Shallow water - more turbulent
+                            if (turbulence > 0.65) {
+                                output += "∼";
+                            } else {
+                                output += "-";
+                            }
+                        } else {
+                            // Very shallow / near surface
+                            if (turbulence > 0.6) {
+                                output += "-";
+                            } else {
+                                output += "·";
+                            }
+                        }
                     } else if (isFoamZone && foamNoise > 0.5) {
                         // Foam at crest
                         output += "≈";
@@ -106,7 +133,7 @@ const WaterWaves = () => {
     return (
         <div
             ref={containerRef}
-            className="w-full h-full overflow-hidden bg-transparent flex items-center justify-center select-none pointer-events-none absolute inset-0 mix-blend-screen"
+            className="w-full h-full overflow-hidden bg-transparent flex items-end justify-center select-none pointer-events-none absolute inset-0 mix-blend-screen"
             aria-hidden="true"
         >
             <pre

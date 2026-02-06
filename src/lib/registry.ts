@@ -756,7 +756,7 @@ const WaterWaves = () => {
     return (
         <div 
             ref={containerRef}
-            className="w-full h-full overflow-hidden bg-transparent flex items-center justify-center select-none pointer-events-none absolute inset-0 mix-blend-screen"
+            className="w-full h-full overflow-hidden bg-transparent flex items-end justify-center select-none pointer-events-none absolute inset-0 mix-blend-screen"
             aria-hidden="true"
         >
             <pre 
@@ -853,7 +853,7 @@ const WaterWaves = () => {
     return (
         <div 
             ref={containerRef}
-            className="w-full h-full overflow-hidden bg-transparent flex items-center justify-center select-none pointer-events-none absolute inset-0 mix-blend-screen"
+            className="w-full h-full overflow-hidden bg-transparent flex items-end justify-center select-none pointer-events-none absolute inset-0 mix-blend-screen"
             aria-hidden="true"
         >
             <pre 
