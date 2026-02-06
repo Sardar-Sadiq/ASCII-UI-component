@@ -61,7 +61,7 @@ const FireEffectFooter = () => {
 
     return (
         <div
-            className="fire-effect-container w-full flex justify-center items-end"
+            className="fire-effect-container w-full flex justify-center items-end mt-auto"
             style={{
                 height: "300px",
                 position: "relative",

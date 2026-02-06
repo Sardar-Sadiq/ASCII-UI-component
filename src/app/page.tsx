@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Copy, Terminal, Monitor, Code2 } from "lucide-react";
+import { Copy, Terminal, Monitor, Code2, RotateCw } from "lucide-react";
 import { COMPONENTS } from "@/lib/registry";
 import { cn } from "@/lib/utils";
 import * as Tabs from "@radix-ui/react-tabs";
@@ -13,6 +13,12 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState("preview");
   const [codeType, setCodeType] = useState<"tsx" | "jsx">("tsx");
   const [copied, setCopied] = useState(false);
+  const [renderKey, setRenderKey] = useState(0);
+
+  // Reset render key when component changes
+  React.useEffect(() => {
+    setRenderKey(0);
+  }, [activeComponentId]);
 
   const handleCopy = () => {
     const codeToCopy = codeType === "tsx" ? activeComponent.code : (activeComponent.codeJsx || activeComponent.code);
@@ -20,6 +26,10 @@ export default function Home() {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  /* ... skipping lines ... */
+
+
 
   return (
     <>
@@ -99,6 +109,8 @@ export default function Home() {
                 </Tabs.Trigger>
               </Tabs.List>
 
+
+
               {activeTab === "code" && (
                 <div className="flex items-center gap-3">
                   <div className="flex bg-neutral-900/50 p-0.5 rounded-md border border-neutral-800">
@@ -156,16 +168,25 @@ export default function Home() {
                       {/* Viewport Container with subtle gradient */}
                       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(50,50,50,0.1)_0%,transparent_70%)]" />
 
-                      {/* The rendering stage */}
-                      <div className="flex-1 flex items-center justify-center relative">
-                        <div className="text-neutral-700 font-mono text-sm opacity-20 select-none absolute">
+                      {/* Floating Reload Button */}
+                      <button
+                        onClick={() => setRenderKey((prev) => prev + 1)}
+                        className="absolute top-4 right-4 z-30 p-2 bg-white text-black rounded-md shadow-lg hover:bg-neutral-200 transition-all hover:scale-105 active:scale-95 group"
+                        title="Reload Animation"
+                      >
+                        <RotateCw className="w-4 h-4 transition-transform duration-500 group-hover:rotate-180" />
+                      </button>
+
+                      {/* The rendering stage text */}
+                      <div className="flex-1 flex items-center justify-center relative z-0">
+                        <div className="text-neutral-700 font-mono text-sm opacity-20 select-none">
                             // Component Rendering Stage
                         </div>
                       </div>
 
-                      {/* Component Placement - Bottom Fixed as per request */}
-                      <div className="z-20 w-full mt-auto mb-8">
-                        <activeComponent.component />
+                      {/* Component Placement - Full Fill */}
+                      <div className="absolute inset-0 z-20 w-full h-full overflow-hidden flex flex-col">
+                        <activeComponent.component key={renderKey} />
                       </div>
                     </motion.div>
                   </Tabs.Content>
