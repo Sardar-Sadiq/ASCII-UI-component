@@ -139,7 +139,7 @@ const WaterWaves = () => {
             <pre
                 className="font-mono text-[8px] md:text-[10px] leading-[8px] md:leading-[10px] text-cyan-500/30 whitespace-pre"
                 style={{
-                    textShadow: "0 0 15px rgba(6, 182, 212, 0.4)"
+                    textShadow: "0 0 15px rgba(127,205,255,1)"
                 }}
             >
                 {frame}
