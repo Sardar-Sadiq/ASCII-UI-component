@@ -43,3 +43,6 @@ ideas
 sceneraay animation
 night sceneraay animation
 ai design ideas
+
+
+added cyberhack component but i need to add in the registry.ts
