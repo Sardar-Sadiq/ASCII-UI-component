@@ -43,6 +43,8 @@ ideas
 sceneraay animation
 night sceneraay animation
 ai design ideas
-
+japanese red gate animation 
+pixel cat animation ( like loading running left to right)
 
 added cyberhack component but i need to add in the registry.ts
+added cybercore component but i need to add in the registry.ts
