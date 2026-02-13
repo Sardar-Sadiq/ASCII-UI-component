@@ -46,5 +46,7 @@ ai design ideas
 japanese red gate animation 
 pixel cat animation ( like loading running left to right)
 
+
 added cyberhack component but i need to add in the registry.ts
 added cybercore component but i need to add in the registry.ts
+added cybertransition component but i need to add in the registry.ts
