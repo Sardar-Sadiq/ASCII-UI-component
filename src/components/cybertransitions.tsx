@@ -17,7 +17,7 @@ const CyberTransition = () => {
     const frameRef = useRef(0);
     const offsetsRef = useRef(new Array(6).fill(0));
 
-    const generateBaseBuffer = (f) => {
+    const generateBaseBuffer = (f: number) => {
         let buffer = new Array(GRID_H).fill(0).map(() => new Array(GRID_W).fill(" "));
         const dataChars = "01:. ";
 
