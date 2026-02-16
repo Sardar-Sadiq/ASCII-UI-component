@@ -3,6 +3,9 @@ import MatrixRain from "@/components/matrix-rain";
 import AsciiLightning from "@/components/ascii-lightning";
 import WaterWaves from "@/components/water-waves";
 import CyberTransition from "@/components/cybertransitions";
+import SpeedWarp from "@/components/speed-warp";
+import CyberpunkNebula from "@/components/cyberpunk-nebula";
+import DataStream from "@/components/data-stream";
 
 
 export interface ComponentMetadata {
@@ -1191,51 +1194,824 @@ export default CyberTransition;
 
 const CYBER_TRANSITION_CODE_JSX = CYBER_TRANSITION_CODE_TSX;
 
-export const COMPONENTS: ComponentMetadata[] = [
-    {
-        id: "fire-effect",
-        name: "Fire Effect",
-        version: "1.0.0",
-        description: "A procedural buffer-based ASCII fire simulation.",
-        component: FireEffectFooter,
-        code: FIRE_EFFECT_CODE_TSX,
-        codeJsx: FIRE_EFFECT_CODE_JSX
-    },
-    {
-        id: "matrix-02",
-        name: "Matrix Data Stream",
-        version: "1.0.0",
-        description: "A vertical digital rain effect inspired by the classic terminal stream.",
-        component: MatrixRain,
-        code: MATRIX_RAIN_CODE_TSX,
-        codeJsx: MATRIX_RAIN_CODE_JSX
-    },
-    {
-        id: "ascii-lightning",
-        name: "Electric Bolt",
-        version: "1.0.0",
-        description: "Shape-bounded particle system forming a flickering lighting bolt.",
-        component: AsciiLightning,
-        code: ASCII_LIGHTNING_CODE_TSX,
-        codeJsx: ASCII_LIGHTNING_CODE_JSX
-    },
+const SPEED_WARP_CODE_TSX = `"use client";
 
-    {
-        id: "water-waves",
-        name: "Water Waves",
-        version: "1.0.0",
-        description: "Ocean waves reaching shore with realistic wash cycles and foam effects.",
-        component: WaterWaves,
-        code: WATER_WAVES_CODE_TSX,
-        codeJsx: WATER_WAVES_CODE_JSX
-    },
-    {
-        id: "cyber-transition",
-        name: "Cyber Transition",
-        version: "1.0.0",
-        description: "A screen transition effect with digital noise and slicing.",
-        component: CyberTransition,
-        code: CYBER_TRANSITION_CODE_TSX,
-        codeJsx: CYBER_TRANSITION_CODE_JSX
-    },
-];
+import React, { useEffect, useRef, useState } from "react";
+
+interface SpeedWarpProps {
+    className?: string;
+    speed?: number;
+    starCount?: number;
+}
+
+const SpeedWarp: React.FC<SpeedWarpProps> = ({ 
+    className = "", 
+    speed = 1.6, 
+    starCount = 200 
+}) => {
+    const [frame, setFrame] = useState("");
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [dimensions, setDimensions] = useState({ width: 80, height: 40 });
+    
+    // Static center characters
+    const centerChars = ".,+*";
+    
+    interface Star {
+        x: number;
+        y: number;
+        z: number;
+    }
+
+    const starsRef = useRef<Star[]>([]);
+
+    // 1. Handle resize to adjust grid resolution
+    useEffect(() => {
+        if (!containerRef.current) return;
+
+        const handleResize = () => {
+            if (containerRef.current) {
+                // Approximate char size for monospace font at 12px/xs
+                // Width roughly 0.6 * height. 
+                // We'll estimate loosely to ensure coverage.
+                const w = Math.floor(containerRef.current.clientWidth / 7.2); 
+                const h = Math.floor(containerRef.current.clientHeight / 14); // leading-none means roughly 1em height
+                
+                // Ensure min dimensions
+                setDimensions({ 
+                    width: Math.max(20, w), 
+                    height: Math.max(10, h) 
+                });
+            }
+        };
+
+        handleResize(); // Initial measurement
+
+        const observer = new ResizeObserver(handleResize);
+        observer.observe(containerRef.current);
+
+        return () => observer.disconnect();
+    }, []);
+
+    // 2. Initialize and maintain stars count based on volume (optional, or just fixed count)
+    // We'll keep fixed count or scale it with dimensions for consistency
+    useEffect(() => {
+        const { width, height } = dimensions;
+        const currentCount = starsRef.current.length;
+        
+        // If we need to add more stars for larger screens
+        if (currentCount < starCount) {
+             const newStars: Star[] = [];
+             for (let i = currentCount; i < starCount; i++) {
+                newStars.push({
+                    x: (Math.random() - 0.5) * width,
+                    y: (Math.random() - 0.5) * height,
+                    z: Math.random() * width
+                });
+             }
+             starsRef.current = [...starsRef.current, ...newStars];
+        }
+    }, [dimensions, starCount]);
+
+
+    // 3. Animation Loop
+    useEffect(() => {
+        let animationFrameId: number;
+
+        const render = () => {
+            const { width, height } = dimensions;
+            const grid: string[][] = Array(height).fill(null).map(() => Array(width).fill(" "));
+            const stars = starsRef.current;
+            const cx = width / 2;
+            const cy = height / 2;
+
+            stars.forEach((star) => {
+                // Move star closer
+                star.z -= speed;
+                
+                // Reset if it passes the viewer
+                if (star.z <= 0) {
+                    star.z = width;
+                    star.x = (Math.random() - 0.5) * width;
+                    star.y = (Math.random() - 0.5) * height;
+                }
+
+                // Project 3D to 2D
+                const k = 128.0 / star.z;
+                const px = Math.floor(star.x * k + cx);
+                const py = Math.floor(star.y * k + cy);
+
+                if (px >= 0 && px < width && py >= 0 && py < height) {
+                    const dx = px - cx;
+                    const dy = py - cy;
+                    const depthRatio = 1 - (star.z / width); // 0 (far) to 1 (near)
+
+                    let char = ".";
+
+                    if (star.z > width * 0.8) {
+                        char = ".";
+                    } else if (star.z > width * 0.4) {
+                        char = centerChars[Math.floor(Math.random() * centerChars.length)];
+                    } else {
+                        // Motion Blur Logic
+                        const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+                        const absAngle = Math.abs(angle);
+                        
+                        if (absAngle < 22.5 || absAngle > 157.5) char = "-";
+                        else if (absAngle > 67.5 && absAngle < 112.5) char = "|";
+                        else if (angle > 0) char = angle < 67.5 ? "\\\\" : "/";
+                        else char = angle > -67.5 ? "/" : "\\\\";
+                    }
+
+                    grid[py][px] = char;
+                }
+            });
+
+            setFrame(grid.map(row => row.join("")).join("\\n"));
+            animationFrameId = requestAnimationFrame(render);
+        };
+
+        animationFrameId = requestAnimationFrame(render);
+        return () => cancelAnimationFrame(animationFrameId);
+    }, [dimensions, speed]); // Re-bind render if dimensions change
+
+    return (
+        <div 
+            ref={containerRef} 
+            className={"w-full h-full flex justify-center items-center overflow-hidden bg-black rounded-lg border border-green-900/30 font-mono relative " + className}
+        >
+             <div className="absolute inset-0 z-10 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.8)_100%)]" />
+            <pre 
+                className="text-green-500 leading-none select-none pointer-events-none whitespace-pre z-0"
+                style={{
+                    fontSize: '12px',
+                    lineHeight: '12px',
+                    textShadow: '0 0 5px rgba(34, 197, 94, 0.9)'
+                }}
+            >
+                {frame}
+            </pre>
+            <style jsx>{\`
+                /* Optional override for extremely small screens */
+                @media (max-width: 640px) {
+                    pre { font-size: 10px !important; line-height: 10px !important; }
+                }
+            `}</style>
+    </div>
+    );
+};
+
+export default SpeedWarp; `;
+const SPEED_WARP_CODE_JSX = SPEED_WARP_CODE_TSX;
+
+const CYBERPUNK_NEBULA_CODE_TSX = `"use client";
+
+import React, { useEffect, useRef, useState } from "react";
+
+interface CyberpunkNebulaProps {
+    className?: string;
+    starCount?: number;
+}
+
+const CyberpunkNebula: React.FC<CyberpunkNebulaProps> = ({
+    className = "",
+    starCount = 300
+}) => {
+    const [frame, setFrame] = useState("");
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [dimensions, setDimensions] = useState({ width: 80, height: 40 });
+
+    // Dithering characters for "dust" opacity - Dark to Light
+    const dustChars = [" ", ".", ":", "-", "=", "+", "*", "#", "%", "@"];
+
+    interface Star {
+        x: number;
+        y: number;
+        z: number;
+        char: string;
+        colorClass: string;
+    }
+
+    const starsRef = useRef<Star[]>([]);
+
+    // 1. Dynamic Sizing
+    useEffect(() => {
+        if (!containerRef.current) return;
+
+        const handleResize = () => {
+            if (containerRef.current) {
+                // Approximate ratio for text-xs (12px)
+                // Using 7.2px width, 14px height roughly
+                const w = Math.floor(containerRef.current.clientWidth / 7.2);
+                const h = Math.floor(containerRef.current.clientHeight / 14);
+
+                setDimensions({
+                    width: Math.max(20, w),
+                    height: Math.max(10, h)
+                });
+            }
+        };
+
+        handleResize();
+        const observer = new ResizeObserver(handleResize);
+        observer.observe(containerRef.current);
+
+        return () => observer.disconnect();
+    }, []);
+
+    // 2. Init Stars
+    useEffect(() => {
+        const { width, height } = dimensions;
+
+        // Regenerate stars on massive resize
+        const stars: Star[] = [];
+        const colors = ["text-blue-500", "text-purple-500", "text-cyan-400"];
+
+        // Adjust starcount density based on area
+        // Standard area approx 100x40 = 4000 cells.
+        const area = width * height;
+        const dynamicStarCount = Math.floor(area * 0.075); // 7.5% density
+
+        for (let i = 0; i < Math.max(starCount, dynamicStarCount); i++) {
+            const z = Math.random() * 2 + 0.2;
+            let char = ".";
+            if (z > 1.5) char = "✦";
+            else if (z > 1.0) char = "*";
+
+            stars.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                z: z,
+                char: char,
+                colorClass: colors[Math.floor(Math.random() * colors.length)]
+            });
+        }
+        starsRef.current = stars;
+    }, [dimensions, starCount]);
+
+    // 3. Render Loop
+    useEffect(() => {
+        let animationFrameId: number;
+        let t = 0;
+
+        const render = () => {
+            t += 0.05;
+            const { width, height } = dimensions;
+            const grid: string[][] = Array(height).fill(null).map(() => Array(width).fill(" "));
+
+            // 1. NEBULA LAYER (Background Noise)
+            // Use looping noise
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const nx = x * 0.08 + t * 0.2;
+                    const ny = y * 0.15 + t * 0.1;
+
+                    const v = Math.sin(nx) * Math.cos(ny) + Math.sin(nx + ny);
+
+                    if (v > 0.5) {
+                        const density = Math.floor((v - 0.5) * 4); // 0 to ~4
+                        const idx = Math.min(density, dustChars.length - 1);
+                        grid[y][x] = dustChars[idx];
+                    }
+                }
+            }
+
+            // 2. STARFIELD (Mid/Fore ground)
+            const stars = starsRef.current;
+            stars.forEach((star) => {
+                star.x -= (star.z * 0.5);
+
+                if (star.x < 0) {
+                    star.x = width;
+                    star.y = Math.floor(Math.random() * height);
+                }
+
+                const px = Math.floor(star.x);
+                const py = Math.floor(star.y);
+
+                if (px >= 0 && px < width && py >= 0 && py < height) {
+                    grid[py][px] = star.char;
+                }
+            });
+
+            // 3. GLITCH
+            if (Math.random() > 0.98) {
+                const row = Math.floor(Math.random() * height);
+                const offset = Math.floor(Math.random() * 10);
+                const original = [...grid[row]];
+                for (let i = 0; i < width; i++) {
+                    grid[row][i] = original[(i + offset) % width];
+                }
+            }
+
+            setFrame(grid.map(row => row.join("")).join("\\n"));
+            animationFrameId = requestAnimationFrame(render);
+        };
+
+        animationFrameId = requestAnimationFrame(render);
+        return () => cancelAnimationFrame(animationFrameId);
+    }, [dimensions]);
+
+    return (
+        <div ref= { containerRef } className = { "w-full h-full flex justify-center items-center overflow-hidden bg-[#0d0d12] relative rounded-xl border border-blue-900/30 " + className } >
+            {/* Background Gradient & Post-Processing */ }
+            < div className = "absolute inset-0 bg-gradient-to-br from-[#1a1a2e] via-transparent to-[#2a0e3b] opacity-60 z-0" />
+
+                <pre 
+                className="font-mono text-[10px] md:text-xs leading-none select-none pointer-events-none whitespace-pre z-10 relative"
+    style = {{
+        color: '#a5b4fc',
+            textShadow: '0 0 2px #4f46e5, 2px 0 4px #c026d3'
+    }
+}
+            >
+    { frame }
+    </pre>
+
+    < div className = "absolute inset-0 z-20 pointer-events-none mix-blend-overlay opacity-30 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,#000_3px)]" />
+        </div>
+    );
+};
+
+export default CyberpunkNebula; `;
+
+import React, { useEffect, useRef, useState } from "react";
+
+interface CyberpunkNebulaProps {
+    className?: string;
+    starCount?: number;
+}
+
+const CyberpunkNebula: React.FC<CyberpunkNebulaProps> = ({
+    className = "",
+    starCount = 300
+}) => {
+    const [frame, setFrame] = useState("");
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [dimensions, setDimensions] = useState({ width: 80, height: 40 });
+
+    // Dithering characters for "dust" opacity - Dark to Light
+    const dustChars = [" ", ".", ":", "-", "=", "+", "*", "#", "%", "@"];
+    
+    interface Star {
+        x: number;
+        y: number;
+        z: number;
+        char: string;
+        colorClass: string;
+    }
+
+    const starsRef = useRef<Star[]>([]);
+    
+    // 1. Dynamic Sizing
+    useEffect(() => {
+        if (!containerRef.current) return;
+
+        const handleResize = () => {
+            if (containerRef.current) {
+                // Approximate ratio for text-xs (12px)
+                // Using 7.2px width, 14px height roughly
+                const w = Math.floor(containerRef.current.clientWidth / 7.2);
+                const h = Math.floor(containerRef.current.clientHeight / 14);
+
+                setDimensions({
+                    width: Math.max(20, w),
+                    height: Math.max(10, h)
+                });
+            }
+        };
+
+        handleResize();
+        const observer = new ResizeObserver(handleResize);
+        observer.observe(containerRef.current);
+
+        return () => observer.disconnect();
+    }, []);
+
+    // 2. Init Stars
+    useEffect(() => {
+        const { width, height } = dimensions;
+
+        // Regenerate stars on massive resize
+        const stars: Star[] = [];
+        const colors = ["text-blue-500", "text-purple-500", "text-cyan-400"];
+
+        // Adjust starcount density based on area
+        // Standard area approx 100x40 = 4000 cells.
+        const area = width * height;
+        const dynamicStarCount = Math.floor(area * 0.075); // 7.5% density
+
+        for (let i = 0; i < Math.max(starCount, dynamicStarCount); i++) {
+            const z = Math.random() * 2 + 0.2;
+            let char = ".";
+            if (z > 1.5) char = "✦";
+            else if (z > 1.0) char = "*";
+            
+            stars.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                z: z,
+                char: char,
+                colorClass: colors[Math.floor(Math.random() * colors.length)]
+            });
+        }
+        starsRef.current = stars;
+    }, [dimensions, starCount]);
+
+    // 3. Render Loop
+    useEffect(() => {
+        let animationFrameId: number;
+        let t = 0;
+
+        const render = () => {
+            t += 0.05;
+            const { width, height } = dimensions;
+            const grid: string[][] = Array(height).fill(null).map(() => Array(width).fill(" "));
+            
+            // 1. NEBULA LAYER (Background Noise)
+            // Use looping noise
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const nx = x * 0.08 + t * 0.2;
+                    const ny = y * 0.15 + t * 0.1;
+                    
+                    const v = Math.sin(nx) * Math.cos(ny) + Math.sin(nx + ny);
+                    
+                    if (v > 0.5) {
+                        const density = Math.floor((v - 0.5) * 4); // 0 to ~4
+                        const idx = Math.min(density, dustChars.length - 1);
+                        grid[y][x] = dustChars[idx];
+                    }
+                }
+            }
+
+            // 2. STARFIELD (Mid/Fore ground)
+            const stars = starsRef.current;
+            stars.forEach((star) => {
+                star.x -= (star.z * 0.5); 
+                
+                if (star.x < 0) {
+                    star.x = width;
+                    star.y = Math.floor(Math.random() * height);
+                }
+
+                const px = Math.floor(star.x);
+                const py = Math.floor(star.y);
+
+                if (px >= 0 && px < width && py >= 0 && py < height) {
+                     grid[py][px] = star.char;
+                }
+            });
+
+            // 3. GLITCH
+            if (Math.random() > 0.98) {
+                const row = Math.floor(Math.random() * height);
+                const offset = Math.floor(Math.random() * 10);
+                const original = [...grid[row]];
+                for (let i = 0; i < width; i++) {
+                    grid[row][i] = original[(i + offset) % width];
+                }
+            }
+
+            setFrame(grid.map(row => row.join("")).join("\\n"));
+            animationFrameId = requestAnimationFrame(render);
+        };
+
+        animationFrameId = requestAnimationFrame(render);
+        return () => cancelAnimationFrame(animationFrameId);
+    }, [dimensions]);
+
+    return (
+        <div ref={containerRef} className={`w - full h - full flex justify - center items - center overflow - hidden bg - [#0d0d12] relative rounded - xl border border - blue - 900 / 30 ${ className } `}>
+            {/* Background Gradient & Post-Processing */}
+            <div className="absolute inset-0 bg-gradient-to-br from-[#1a1a2e] via-transparent to-[#2a0e3b] opacity-60 z-0" />
+            
+            <pre 
+                className="font-mono text-[10px] md:text-xs leading-none select-none pointer-events-none whitespace-pre z-10 relative"
+                style={{
+                    color: '#a5b4fc', 
+                    textShadow: '0 0 2px #4f46e5, 2px 0 4px #c026d3'
+                }}
+            >
+                {frame}
+            </pre>
+            
+            <div className="absolute inset-0 z-20 pointer-events-none mix-blend-overlay opacity-30 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,#000_3px)]" />
+        </div>
+    );
+};
+
+export default CyberpunkNebula;`;
+const CYBERPUNK_NEBULA_CODE_JSX = CYBERPUNK_NEBULA_CODE_TSX;
+
+const DATA_STREAM_CODE_TSX = `"use client";
+
+import React, { useEffect, useRef, useState } from "react";
+
+interface DataStreamProps {
+    className?: string;
+}
+
+const DataStream: React.FC<DataStreamProps> = ({ className = "" }) => {
+    const [frame, setFrame] = useState("");
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [dimensions, setDimensions] = useState({ width: 80, height: 40 });
+    
+    // Characters
+    const hexChars = "01AF"; 
+    
+    useEffect(() => {
+        if (!containerRef.current) return;
+
+        const handleResize = () => {
+            if (containerRef.current) {
+                // Approximate ratio for text-xs (12px)
+                // Width roughly 0.6 * height. 
+                const w = Math.floor(containerRef.current.clientWidth / 7.2);
+                const h = Math.floor(containerRef.current.clientHeight / 14);
+                
+                setDimensions({ 
+                    width: Math.max(20, w), 
+                    height: Math.max(10, h) 
+                });
+            }
+        };
+
+        handleResize(); // Initial measurement
+        const observer = new ResizeObserver(handleResize);
+        observer.observe(containerRef.current);
+
+        return () => observer.disconnect();
+    }, []);
+
+    useEffect(() => {
+        let animationFrameId: number;
+        let frameCount = 0;
+
+        const render = () => {
+            frameCount++;
+            const { width, height } = dimensions;
+            const grid: string[][] = Array(height).fill(null).map(() => Array(width).fill(" "));
+            const cx = width / 2;
+            const cy = height / 2;
+            
+            // Time factor for swirl
+            const t = frameCount * 0.05;
+
+            // Ray marching / Tunnel logic inverted
+            // We iterate pixels and map them to tunnel coordinates
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const dx = x - cx;
+                    const dy = (y - cy) * 2; // Correct aspect ratio roughly (chars are taller than wide)
+                    
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const angle = Math.atan2(dy, dx);
+                    
+                    // Simple Void Check
+                    if (dist < 5) continue; // Center void
+
+                    // Spiral effect
+                    const spiralAngle = angle + (dist * 0.05) - t; // Rotating spiral
+
+                    // Quantize angle to create discrete streams
+                    const streamCount = 12;
+                    // Check if we are inside a stream
+                    // sin(stream_frequency * angle)
+                    const streamIntensity = Math.sin(streamCount * spiralAngle);
+                    
+                    if (streamIntensity > 0.8) {
+                        // We are in a stream
+                        // Move "characters" along the stream outwards
+                        const flowSpeed = t * 2;
+                        const patternPos = Math.floor(dist - flowSpeed);
+                        
+                        if (patternPos % 3 === 0) {
+                             grid[y][x] = hexChars[Math.floor(Math.abs(Math.sin(patternPos)) * hexChars.length) % hexChars.length];
+                        }
+                    }
+                }
+            }
+
+            setFrame(grid.map(row => row.join("")).join("\\n"));
+            animationFrameId = requestAnimationFrame(render);
+        };
+
+        animationFrameId = requestAnimationFrame(render);
+        return () => cancelAnimationFrame(animationFrameId);
+    }, [dimensions]);
+
+    return (
+        <div ref={containerRef} className={"w-full h-full flex justify-center items-center overflow-hidden bg-black relative rounded-xl border border-gray-800 " + className}>
+             {/* Premium Post-processing glow */}
+             <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_center,rgba(50,50,50,0.2)_0%,rgba(0,0,0,1)_80%)]" />
+             
+            <pre 
+                className="font-mono text-xs leading-none select-none pointer-events-none whitespace-pre z-10 relative text-gray-300"
+                style={{
+                    textShadow: '0 0 5px rgba(255, 255, 255, 0.3)' // Soft white glow
+                }}
+            >
+                {frame}
+            </pre>
+            
+            {/* Central "Void" Glow */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-black rounded-full shadow-[0_0_30px_rgba(255,255,255,0.1)] z-20 mix-blend-soft-light" />
+        </div>
+    );
+};
+
+export default DataStream;`;
+
+import React, { useEffect, useRef, useState } from "react";
+
+interface DataStreamProps {
+    className?: string;
+}
+
+const DataStream: React.FC<DataStreamProps> = ({ className = "" }) => {
+    const [frame, setFrame] = useState("");
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [dimensions, setDimensions] = useState({ width: 80, height: 40 });
+
+    // Characters
+    const hexChars = "01AF";
+
+    useEffect(() => {
+        if (!containerRef.current) return;
+
+        const handleResize = () => {
+            if (containerRef.current) {
+                // Approximate ratio for text-xs (12px)
+                // Width roughly 0.6 * height. 
+                const w = Math.floor(containerRef.current.clientWidth / 7.2);
+                const h = Math.floor(containerRef.current.clientHeight / 14);
+
+                setDimensions({
+                    width: Math.max(20, w),
+                    height: Math.max(10, h)
+                });
+            }
+        };
+
+        handleResize(); // Initial measurement
+        const observer = new ResizeObserver(handleResize);
+        observer.observe(containerRef.current);
+
+        return () => observer.disconnect();
+    }, []);
+
+    useEffect(() => {
+        let animationFrameId: number;
+        let frameCount = 0;
+
+        const render = () => {
+            frameCount++;
+            const { width, height } = dimensions;
+            const grid: string[][] = Array(height).fill(null).map(() => Array(width).fill(" "));
+            const cx = width / 2;
+            const cy = height / 2;
+
+            // Time factor for swirl
+            const t = frameCount * 0.05;
+
+            // Ray marching / Tunnel logic inverted
+            // We iterate pixels and map them to tunnel coordinates
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const dx = x - cx;
+                    const dy = (y - cy) * 2; // Correct aspect ratio roughly (chars are taller than wide)
+
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const angle = Math.atan2(dy, dx);
+
+                    // Simple Void Check
+                    if (dist < 5) continue; // Center void
+
+                    // Spiral effect
+                    const spiralAngle = angle + (dist * 0.05) - t; // Rotating spiral
+
+                    // Quantize angle to create discrete streams
+                    const streamCount = 12;
+                    // Check if we are inside a stream
+                    // sin(stream_frequency * angle)
+                    const streamIntensity = Math.sin(streamCount * spiralAngle);
+
+                    if (streamIntensity > 0.8) {
+                        // We are in a stream
+                        // Move "characters" along the stream outwards
+                        const flowSpeed = t * 2;
+                        const patternPos = Math.floor(dist - flowSpeed);
+
+                        if (patternPos % 3 === 0) {
+                            grid[y][x] = hexChars[Math.floor(Math.abs(Math.sin(patternPos)) * hexChars.length) % hexChars.length];
+                        }
+                    }
+                }
+            }
+
+            setFrame(grid.map(row => row.join("")).join("\\n"));
+            animationFrameId = requestAnimationFrame(render);
+        };
+
+        animationFrameId = requestAnimationFrame(render);
+        return () => cancelAnimationFrame(animationFrameId);
+    }, [dimensions]);
+
+    return (
+        <div ref= { containerRef } className = { \`w-full h-full flex justify-center items-center overflow-hidden bg-black relative rounded-xl border border-gray-800 \${className}\`}>
+             {/* Premium Post-processing glow */}
+             <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_center,rgba(50,50,50,0.2)_0%,rgba(0,0,0,1)_80%)]" />
+             
+            <pre 
+                className="font-mono text-xs leading-none select-none pointer-events-none whitespace-pre z-10 relative text-gray-300"
+                style={{
+                    textShadow: '0 0 5px rgba(255, 255, 255, 0.3)' // Soft white glow
+                }}
+            >
+                {frame}
+            </pre>
+            
+            {/* Central "Void" Glow */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-black rounded-full shadow-[0_0_30px_rgba(255,255,255,0.1)] z-20 mix-blend-soft-light" />
+        </div>
+    );
+};
+
+export default DataStream;`;
+    const DATA_STREAM_CODE_JSX = DATA_STREAM_CODE_TSX;
+
+    export const COMPONENTS: ComponentMetadata[] = [
+        {
+            id: "speed-warp",
+            name: "Speed Warp",
+            version: "1.0.0",
+            description: "High-speed terminal starfield with motion blur.",
+            component: SpeedWarp,
+            code: SPEED_WARP_CODE_TSX,
+            codeJsx: SPEED_WARP_CODE_JSX
+        },
+        {
+            id: "cyberpunk-nebula",
+            name: "Cyberpunk Nebula",
+            version: "1.0.0",
+            description: "Stylized 3D deep space effect with parallax stars and glitch effects.",
+            component: CyberpunkNebula,
+            code: CYBERPUNK_NEBULA_CODE_TSX,
+            codeJsx: CYBERPUNK_NEBULA_CODE_JSX
+        },
+        {
+            id: "data-stream",
+            name: "Data Stream",
+            version: "1.0.0",
+            description: "Swirling binary/hex data streams radiating from a central void.",
+            component: DataStream,
+            code: DATA_STREAM_CODE_TSX,
+            codeJsx: DATA_STREAM_CODE_JSX
+        },
+        {
+            id: "fire-effect",
+            name: "Fire Effect",
+            version: "1.0.0",
+            description: "A procedural buffer-based ASCII fire simulation.",
+            component: FireEffectFooter,
+            code: FIRE_EFFECT_CODE_TSX,
+            codeJsx: FIRE_EFFECT_CODE_JSX
+        },
+        {
+            id: "matrix-02",
+            name: "Matrix Data Stream",
+            version: "1.0.0",
+            description: "A vertical digital rain effect inspired by the classic terminal stream.",
+            component: MatrixRain,
+            code: MATRIX_RAIN_CODE_TSX,
+            codeJsx: MATRIX_RAIN_CODE_JSX
+        },
+        {
+            id: "ascii-lightning",
+            name: "Electric Bolt",
+            version: "1.0.0",
+            description: "Shape-bounded particle system forming a flickering lighting bolt.",
+            component: AsciiLightning,
+            code: ASCII_LIGHTNING_CODE_TSX,
+            codeJsx: ASCII_LIGHTNING_CODE_JSX
+        },
+
+        {
+            id: "water-waves",
+            name: "Water Waves",
+            version: "1.0.0",
+            description: "Ocean waves reaching shore with realistic wash cycles and foam effects.",
+            component: WaterWaves,
+            code: WATER_WAVES_CODE_TSX,
+            codeJsx: WATER_WAVES_CODE_JSX
+        },
+        {
+            id: "cyber-transition",
+            name: "Cyber Transition",
+            version: "1.0.0",
+            description: "A screen transition effect with digital noise and slicing.",
+            component: CyberTransition,
+            code: CYBER_TRANSITION_CODE_TSX,
+            codeJsx: CYBER_TRANSITION_CODE_JSX
+        },
+    ];
